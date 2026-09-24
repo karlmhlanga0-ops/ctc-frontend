@@ -11,16 +11,20 @@ export function generateStaticParams() {
   ];
 }
 
+// FIX: Await the params before accessing them
 export async function generateMetadata({ params }) {
-  const platformName = params.platform.charAt(0).toUpperCase() + params.platform.slice(1);
+  const resolvedParams = await params;
+  const platformName = resolvedParams.platform.charAt(0).toUpperCase() + resolvedParams.platform.slice(1);
   return {
     title: `${platformName} Peppol E-Invoicing API Integration`,
     description: `Automate UBL 2.1 e-invoicing and tax compliance directly from your ${platformName} backend with our serverless API.`,
   };
 }
 
-export default function PlatformIntegrationPage({ params }) {
-  const platformName = params.platform.charAt(0).toUpperCase() + params.platform.slice(1);
+// FIX: Await the params before accessing them
+export default async function PlatformIntegrationPage({ params }) {
+  const resolvedParams = await params;
+  const platformName = resolvedParams.platform.charAt(0).toUpperCase() + resolvedParams.platform.slice(1);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center py-20">
