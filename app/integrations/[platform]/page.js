@@ -1,5 +1,5 @@
 import React from 'react';
-import AwsTestButton from './AwsTestButton'; // We will create this next
+import AwsTestButton from './AwsTestButton';
 
 export function generateStaticParams() {
   return [
@@ -11,16 +11,20 @@ export function generateStaticParams() {
   ];
 }
 
+// Added async and await for Next.js 15 compatibility
 export async function generateMetadata({ params }) {
-  const platformName = params.platform.charAt(0).toUpperCase() + params.platform.slice(1);
+  const { platform } = await params;
+  const platformName = platform.charAt(0).toUpperCase() + platform.slice(1);
   return {
     title: `${platformName} Peppol E-Invoicing API Integration`,
     description: `Automate UBL 2.1 e-invoicing and tax compliance directly from your ${platformName} backend with our serverless API.`,
   };
 }
 
-export default function PlatformIntegrationPage({ params }) {
-  const platformName = params.platform.charAt(0).toUpperCase() + params.platform.slice(1);
+// Added async and await for Next.js 15 compatibility
+export default async function PlatformIntegrationPage({ params }) {
+  const { platform } = await params;
+  const platformName = platform.charAt(0).toUpperCase() + platform.slice(1);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center py-20">
@@ -39,14 +43,13 @@ export default function PlatformIntegrationPage({ params }) {
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
-    "platform": "${params.platform}",
+    "platform": "${platform}",
     "order_id": "INV-1234"
   }'`}
           </pre>
         </div>
 
-        {/* This injects the interactive button component */}
-        <AwsTestButton platform={params.platform} />
+        <AwsTestButton platform={platform} />
         
       </div>
     </div>
