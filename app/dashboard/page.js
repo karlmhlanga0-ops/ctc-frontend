@@ -1,12 +1,38 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function Dashboard() {
+  const [apiKey, setApiKey] = useState(null);
   const [response, setResponse] = useState(null);
   const [loading, setLoading] = useState(false);
-  
-  // Hardcoded for now until we connect the Lemon Squeezy webhook database
-  const apiKey = "sk_test_octothorp_12345";
+  const [generating, setGenerating] = useState(false);
+
+  useEffect(() => {
+    const savedKey = localStorage.getItem('octothorp_api_key');
+    if (savedKey) setApiKey(savedKey);
+  }, []);
+
+  const generateNewKey = async () => {
+    setGenerating(true);
+    try {
+      const res = await fetch('https://d8v01rrw7d.execute-api.af-south-1.amazonaws.com/Prod/keys/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-master-key': 'octothorp-admin-2026'
+        },
+        body: JSON.stringify({ email: "developer@agency.com" })
+      });
+      const data = await res.json();
+      if (data.apiKey) {
+        setApiKey(data.apiKey);
+        localStorage.setItem('octothorp_api_key', data.apiKey);
+      }
+    } catch (error) {
+      console.error("Failed to generate key");
+    }
+    setGenerating(false);
+  };
 
   const testConnection = async () => {
     setLoading(true);
@@ -17,7 +43,7 @@ export default function Dashboard() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${apiKey}`
         },
-        body: JSON.stringify({ order_id: "DASHBOARD-TEST-001" })
+        body: JSON.stringify({ order_id: "DYNAMO-TEST-001" })
       });
       const data = await res.json();
       setResponse(data);
@@ -33,18 +59,31 @@ export default function Dashboard() {
         <h1 className="text-3xl font-bold">Developer Dashboard</h1>
         
         <div className="bg-[#1E293B] p-6 rounded-lg border border-slate-700">
-          <h2 className="text-xl font-semibold mb-2">Your API Keys</h2>
-          <p className="text-slate-400 mb-4">Use this secret key to authenticate your payload requests to the Octothorp API. Do not expose this in client-side code.</p>
-          <code className="bg-black p-3 rounded block text-green-400 border border-slate-800">
-            {apiKey}
-          </code>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">Your API Keys</h2>
+            <button 
+              onClick={generateNewKey}
+              disabled={generating}
+              className="bg-green-600 hover:bg-green-500 text-white px-4 py-2 text-sm font-semibold rounded transition-colors disabled:opacity-50"
+            >
+              {generating ? "Generating..." : "Generate New Key"}
+            </button>
+          </div>
+          
+          {apiKey ? (
+            <code className="bg-black p-3 rounded block text-green-400 border border-slate-800 break-all">
+              {apiKey}
+            </code>
+          ) : (
+            <p className="text-slate-400 text-sm">No active keys found. Generate one to get started.</p>
+          )}
         </div>
 
         <div className="bg-[#1E293B] p-6 rounded-lg border border-slate-700">
           <h2 className="text-xl font-semibold mb-4">Test Integration</h2>
           <button 
             onClick={testConnection}
-            disabled={loading}
+            disabled={loading || !apiKey}
             className="bg-white text-black font-semibold hover:bg-slate-200 px-4 py-2 rounded transition-colors disabled:opacity-50"
           >
             {loading ? "Testing..." : "Test AWS Lambda Connection"}
