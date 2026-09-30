@@ -1,38 +1,17 @@
 'use client';
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
-export default function Dashboard() {
-  const [apiKey, setApiKey] = useState(null);
+export default function WooCommerceIntegration() {
+  const [apiKey, setApiKey] = useState("YOUR_API_KEY");
   const [response, setResponse] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [generating, setGenerating] = useState(false);
 
+  // Pull the generated key from the dashboard if it exists
   useEffect(() => {
     const savedKey = localStorage.getItem('octothorp_api_key');
     if (savedKey) setApiKey(savedKey);
   }, []);
-
-  const generateNewKey = async () => {
-    setGenerating(true);
-    try {
-      const res = await fetch('https://d8v01rrw7d.execute-api.af-south-1.amazonaws.com/Prod/keys/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-master-key': 'octothorp-admin-2026'
-        },
-        body: JSON.stringify({ email: "developer@agency.com" })
-      });
-      const data = await res.json();
-      if (data.apiKey) {
-        setApiKey(data.apiKey);
-        localStorage.setItem('octothorp_api_key', data.apiKey);
-      }
-    } catch (error) {
-      console.error("Failed to generate key");
-    }
-    setGenerating(false);
-  };
 
   const testConnection = async () => {
     setLoading(true);
@@ -43,60 +22,58 @@ export default function Dashboard() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${apiKey}`
         },
-        body: JSON.stringify({ order_id: "DYNAMO-TEST-001" })
+        body: JSON.stringify({ platform: "woocommerce", order_id: "INV-1234" })
       });
       const data = await res.json();
       setResponse(data);
     } catch (error) {
-      setResponse({ error: "Network failed" });
+      setResponse({ error: "Network error connecting to AWS." });
     }
     setLoading(false);
   };
 
   return (
-    <div className="min-h-screen bg-[#0F172A] text-white p-10 font-sans">
-      <div className="max-w-3xl mx-auto space-y-6">
-        <h1 className="text-3xl font-bold">Developer Dashboard</h1>
-        
-        <div className="bg-[#1E293B] p-6 rounded-lg border border-slate-700">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">Your API Keys</h2>
-            <button 
-              onClick={generateNewKey}
-              disabled={generating}
-              className="bg-green-600 hover:bg-green-500 text-white px-4 py-2 text-sm font-semibold rounded transition-colors disabled:opacity-50"
-            >
-              {generating ? "Generating..." : "Generate New Key"}
-            </button>
-          </div>
-          
-          {apiKey ? (
-            <code className="bg-black p-3 rounded block text-green-400 border border-slate-800 break-all">
-              {apiKey}
-            </code>
-          ) : (
-            <p className="text-slate-400 text-sm">No active keys found. Generate one to get started.</p>
-          )}
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 p-10 font-sans">
+      <div className="max-w-4xl mx-auto mt-20 space-y-8">
+        <h1 className="text-4xl font-bold tracking-tight">Automate Peppol E-Invoicing for WooCommerce</h1>
+        <p className="text-lg text-slate-600 leading-relaxed max-w-2xl">
+          Don't build complex XML routing from scratch. Send standard JSON from your WooCommerce server, and our API handles the UBL 2.1 mapping and Peppol network routing.
+        </p>
+
+        <div className="bg-[#0F172A] p-6 rounded-xl shadow-xl text-sm font-mono text-slate-300">
+          <div className="text-slate-500 mb-4 text-xs tracking-wider">POST /INVOICE/CLEAR</div>
+          <pre className="overflow-x-auto">
+            <span className="text-green-400">curl</span> -X POST "https://api.octothorp.online/invoice/clear" \<br/>
+            {"  "}-H "Authorization: Bearer <span className={apiKey !== "YOUR_API_KEY" ? "text-green-400" : "text-yellow-400"}>{apiKey}</span>" \<br/>
+            {"  "}-H "Content-Type: application/json" \<br/>
+            {"  "}-d '{"{"}<br/>
+            {"    "}"platform": "woocommerce",<br/>
+            {"    "}"order_id": "INV-1234"<br/>
+            {"  "}{"}'"}
+          </pre>
         </div>
 
-        <div className="bg-[#1E293B] p-6 rounded-lg border border-slate-700">
-          <h2 className="text-xl font-semibold mb-4">Test Integration</h2>
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
           <button 
             onClick={testConnection}
-            disabled={loading || !apiKey}
-            className="bg-white text-black font-semibold hover:bg-slate-200 px-4 py-2 rounded transition-colors disabled:opacity-50"
+            disabled={loading}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors disabled:opacity-50"
           >
             {loading ? "Testing..." : "Test AWS Lambda Connection"}
           </button>
-
-          {response && (
-            <div className="mt-4 p-4 bg-black rounded border border-slate-700 overflow-x-auto">
-              <pre className="text-sm text-slate-300">
-                {JSON.stringify(response, null, 2)}
-              </pre>
-            </div>
+          
+          {apiKey === "YOUR_API_KEY" && (
+            <Link href="/dashboard" className="text-sm text-blue-600 hover:underline">
+              Generate an API key in the dashboard first &rarr;
+            </Link>
           )}
         </div>
+
+        {response && (
+          <div className={`p-4 rounded-lg font-mono text-sm overflow-x-auto ${response.error || response.status === 'error' ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-green-50 text-green-700 border border-green-200'}`}>
+            <pre>{JSON.stringify(response, null, 2)}</pre>
+          </div>
+        )}
       </div>
     </div>
   );
