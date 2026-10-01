@@ -59,7 +59,7 @@ export default function WooCommerceIntegration() {
             disabled={loading}
             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors disabled:opacity-50"
           >
-            {loading ? "Testing..." : "Test AWS Lambda Connection"}
+            {loading ? "Testing..." : "Test Server Connection"}
           </button>
           
           {apiKey === "YOUR_API_KEY" && (

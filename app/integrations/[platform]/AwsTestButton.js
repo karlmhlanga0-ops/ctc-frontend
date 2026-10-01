@@ -35,7 +35,7 @@ export default function AwsTestButton({ platform }) {
         disabled={isLoading}
         className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-md transition-colors w-full sm:w-auto disabled:opacity-50"
       >
-        {isLoading ? "Pinging Cape Town..." : "Test AWS Lambda Connection"}
+        {isLoading ? "Pinging Cape Town..." : "Test API Connection"}
       </button>
       
       {responseMsg && (
